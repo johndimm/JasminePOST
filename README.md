@@ -3,6 +3,21 @@
 This is a short example showing that special handling is needed to 
 test POST requests using jasmine.  
 
+##### Install and test
+
+In one command shell:
+```
+npm install
+node index.js
+```
+
+In another:
+```
+npm test
+```
+
+##### Flow
+
 To get started, the node server responds to a GET / request with an HTML form:
 
 ```
@@ -20,6 +35,10 @@ To get started, the node server responds to a GET / request with an HTML form:
   </form>
 ```
 
+Navigate to
+
+  http://localhost:3000/
+  
 Fill in some values and submit the form.  The server responds by returning the input 
 parameters and logging some debug info.
 
@@ -40,13 +59,14 @@ app.post('/receiveForm', function(req, res) {
 
 ```
 
-The response is good, as expected, from filling in the form on the web page at http://localhost:3000/:
+The response is good, as expected.  No problem when filling in the 
+form.
 
 ```
 {"response":{"to":"foo@bar.com","from":"moo@zar.com","message":"amber alert"}}
 ```
 
-The server response:
+The server response shows it all worked when the data comes from an HTML form.
 
 ```
 body: {"to":"foo@bar.com","from":"moo@zar.com","message":"amber alert"}
@@ -55,7 +75,9 @@ from: moo@zar.com
 message: amber alert
 ```
 
-So far so good.  To test this with jasmine, I created this options object for request.  The data is
+To test this with jasmine, I created this options object for request, 
+hoping it will result in the same request as the browser makes with the HTML 
+form.  The form data is
 stringified and passed as the "body", and I specified that it's json.
 
 
@@ -99,11 +121,12 @@ from: undefined
 message: undefined
 ```
 
-The fix is to notice hat body.response no longer has a hash of the POST parameters.  Instead, 
-it has an object with one key that is a string with the hash.  The value at that key is the 
-empty string.
+The workaround is easy.  The response no longer has a hash of the POST parameters.  But
+they are available.  The field body.response is an object with one key 
+that is itself a JSON string that parses to the hash.  The value at that key is the 
+empty string.  Doesn't look right, but the information is there.
 
-We can parse the key and use the resulting object:
+You can parse the key and use the resulting object:
 
 ```
   var keys = Object.keys(req.body);
@@ -117,7 +140,7 @@ We can parse the key and use the resulting object:
   }
 ```
 
-Now the jasmine test shows:
+Now the jasmine test shows the right output:
 
 ```
 body: {"response":{"to":"foo@bar.com","from":"moo@zar.com","message":"amber alert"}}
@@ -126,7 +149,7 @@ from: moo@zar.com
 message: amber alert
 ```
 
-And the server displays:
+And the server displays the right stuff:
 
 ```
 Express Server Started on http://localhost:3000
