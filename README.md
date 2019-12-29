@@ -1,9 +1,10 @@
 ## Testing POST requests using jasmine
 
-This is a short example showing that special handling is needed to 
+This is a minimal self-contained example showing that special 
+handling is needed to 
 test POST requests using jasmine.  
 
-##### Install and test
+### Install and test
 
 In one command shell:
 ```
@@ -16,7 +17,7 @@ In another:
 npm test
 ```
 
-##### Flow
+### This works: a POST request from an HTML page
 
 To get started, the node server responds to a GET / request with an HTML form:
 
@@ -75,8 +76,10 @@ from: moo@zar.com
 message: amber alert
 ```
 
+### This does not work: a spec using Jasmine and request
+
 To test this with jasmine, I created this options object for request, 
-hoping it will result in the same request as the browser makes with the HTML 
+hoping it will result in the same request the browser makes with the HTML 
 form.  The form data is
 stringified and passed as the "body", and I specified that it's json.
 
@@ -121,12 +124,21 @@ from: undefined
 message: undefined
 ```
 
-The workaround is easy.  The response no longer has a hash of the POST parameters.  But
-they are available.  The field body.response is an object with one key 
-that is itself a JSON string that parses to the hash.  The value at that key is the 
-empty string.  Doesn't look right, but the information is there.
+### Here is the fix: extract the data from an unexpected location
 
-You can parse the key and use the resulting object:
+The workaround is easy.  When POST data is processed using request and jasmine, the 
+body.response no longer has a hash of the POST parameters.  But
+they are available.  The object body.response has only one key, with a value of the 
+empty string.  The key is a JSON string that parses to the POST params hash. 
+
+```
+body: {"{\"to\":\"foo@bar.com\",\"from\":\"moo@zar.com\",\"message\":\"amber alert\"}":""}
+```
+
+If anybody out there knows how to modify the request options shown above to return the expected structure, 
+a comment would be greatly appreciated.
+
+You can parse the key and use the resulting object in place of body.response.
 
 ```
   var keys = Object.keys(req.body);
@@ -159,5 +171,3 @@ to: foo@bar.com
 from: moo@zar.com
 message: amber alert
 ```
-
-Full source on github.
